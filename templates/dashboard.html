@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-5 align-items-center">
+    <div class="col">
+        <h2 class="fw-bold text-white mb-1">Welcome back, <span class="text-success">{{ current_user.username }}</span>! ⚡</h2>
+        <p class="text-white-50 m-0">Your real-time AI nutrition ecosystem is active.</p>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger px-4 rounded-pill border-opacity-50">Log Out</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Macro Analytics Chart Panel -->
+    <div class="col-lg-5">
+        <div class="card h-100 p-4 text-center d-flex flex-column justify-content-center">
+            <h5 class="fw-bold mb-4 text-white-50 text-uppercase tracking-wider fs-6">Macro Distribution</h5>
+            <div class="position-relative mx-auto" style="max-width: 240px;">
+                <canvas id="macroChart"></canvas>
+            </div>
+            <div class="mt-4">
+                <div class="display-5 fw-bold text-success">{{ totals.calories }}</div>
+                <p class="text-white-50 text-uppercase tracking-wide small m-0 mt-1">Total Calories Consumed</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Scanner & Meal Log Panel -->
+    <div class="col-lg-7">
+        <!-- Scanner Widget -->
+        <div class="card p-4 mb-4">
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <span>📸</span> AI Vision Scanner
+            </h5>
+            <form action="/scan" method="POST" enctype="multipart/form-data" class="d-flex gap-3 align-items-center">
+                <input type="file" name="food_image" class="form-control" accept="image/*" required>
+                <button type="submit" class="btn btn-success px-4 text-nowrap">Decode Meal</button>
+            </form>
+        </div>
+
+        <!-- Meal History Log -->
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3">Today's Logged Items</h5>
+            <ul class="list-group list-group-flush">
+                {% for meal in meals %}
+                <li class="list-group-item d-flex justify-content-between align-items-center py-3 px-0">
+                    <div>
+                        <strong class="fs-6">{{ meal.food_name }}</strong><br>
+                        <small class="text-white-50">Protein: {{ meal.protein }}g | Carbs: {{ meal.carbs }}g | Fat: {{ meal.fat }}g</small>
+                    </div>
+                    <span class="badge bg-success bg-opacity-20 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill fw-bold">{{ meal.calories }} kcal</span>
+                </li>
+                {% else %}
+                <div class="text-center py-5 text-white-50">
+                    <p class="mb-1 fs-4">🍽️</p>
+                    <p class="m-0">No meals logged yet. Upload a photo above to start tracking!</p>
+                </div>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Modern Configuration Script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('macroChart').getContext('2d');
+    
+    const protein = {{ totals.protein }};
+    const carbs = {{ totals.carbs }};
+    const fat = {{ totals.fat }};
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Protein', 'Carbs', 'Fat'],
+            datasets: [{
+                data: [protein, carbs, fat],
+                backgroundColor: ['#f43f5e', '#38bdf8', '#fbbf24'],
+                borderWidth: 0,
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    position: 'bottom',
+                    labels: { color: '#f8fafc', font: { family: 'Inter', weight: 500 } }
+                }
+            },
+            cutout: '75%'
+        }
+    });
+</script>
+{% endblock %}

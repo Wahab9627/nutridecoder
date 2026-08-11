@@ -56,8 +56,14 @@ def index():
 def register():
     if request.method == 'POST':
         username = request.form['username']
+        
+        # FIX: Check if the user already exists to prevent a database crash
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            flash('Username already exists. Please choose a different one.')
+            return redirect(url_for('register'))
+            
         password = request.form['password'].encode('utf-8')
-        # FIX: Add .decode('utf-8') here
         hashed = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
         
         new_user = User(username=username, password=hashed)

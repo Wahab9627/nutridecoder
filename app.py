@@ -15,7 +15,7 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # --- AI SETUP ---
 # --- AI SETUP ---
-GEMINI_API_KEY = 'YOUR_GEMINI_KEY_HERE'  # Keep it as a placeholder!
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-3.5-flash')
 # --- DATABASE SETUP ---
@@ -57,7 +57,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password'].encode('utf-8')
-        hashed = bcrypt.hashpw(password, bcrypt.gensalt())
+        # FIX: Add .decode('utf-8') here
+        hashed = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
         
         new_user = User(username=username, password=hashed)
         db.session.add(new_user)
@@ -70,7 +71,8 @@ def register():
 def login():
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form['username']).first()
-        if user and bcrypt.checkpw(request.form['password'].encode('utf-8'), user.password):
+        # FIX: Add .encode('utf-8') to user.password here
+        if user and bcrypt.checkpw(request.form['password'].encode('utf-8'), user.password.encode('utf-8')):
             login_user(user)
             return redirect(url_for('dashboard'))
         flash('Invalid credentials')
